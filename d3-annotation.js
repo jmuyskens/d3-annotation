@@ -309,11 +309,11 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 
 },{"d3-dispatch":1,"d3-selection":4}],3:[function(require,module,exports){
-// https://d3js.org/d3-path/ Version 1.0.3. Copyright 2016 Mike Bostock.
+// https://d3js.org/d3-path/ Version 1.0.5. Copyright 2017 Mike Bostock.
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.d3 = global.d3 || {})));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.d3 = global.d3 || {})));
 }(this, (function (exports) { 'use strict';
 
 var pi = Math.PI;
@@ -424,14 +424,16 @@ Path.prototype = path.prototype = {
     // Is this arc empty? We’re done.
     if (!r) return;
 
+    // Does the angle go the wrong way? Flip the direction.
+    if (da < 0) da = da % tau + tau;
+
     // Is this a complete circle? Draw two arcs to complete the circle.
     if (da > tauEpsilon) {
       this._ += "A" + r + "," + r + ",0,1," + cw + "," + (x - dx) + "," + (y - dy) + "A" + r + "," + r + ",0,1," + cw + "," + (this._x1 = x0) + "," + (this._y1 = y0);
     }
 
-    // Otherwise, draw an arc!
-    else {
-      if (da < 0) da = da % tau + tau;
+    // Is this arc non-empty? Draw an arc!
+    else if (da > epsilon) {
       this._ += "A" + r + "," + r + ",0," + (+(da >= pi)) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
     }
   },
@@ -3285,7 +3287,7 @@ function annotation() {
 
   var annotation = function annotation(selection) {
     sel = selection;
-    //TODO: check to see if this is still needed    
+    //TODO: check to see if this is still needed
     if (!editMode) {
       selection.selectAll("circle.handle").remove();
     }
@@ -3336,6 +3338,14 @@ function annotation() {
     window.copy(JSON.stringify(collection.json.map(function (a) {
       delete a.type;return a;
     })));
+    return annotation;
+  };
+
+  annotation.jsonDataOnly = function () {
+    console.log('Annotations JSON was copied to your clipboard. Please note the annotation type is not JSON compatible. It appears in the objects array in the console, but not in the copied JSON.', collection.json);
+    window.copy(JSON.stringify(collection.json.map(function (a) {
+      delete a.type;delete a.x;delete a.y;return a;
+    }, null, 4)));
     return annotation;
   };
 
@@ -3959,21 +3969,19 @@ exports.default = function (_ref) {
   var handles = [];
 
   if (type.editMode) {
-    (function () {
-      var cHandles = connectorData.points.map(function (c, i) {
-        return _extends({}, (0, _Handles.pointHandle)({ cx: c[0], cy: c[1] }), { index: i });
-      });
+    var cHandles = connectorData.points.map(function (c, i) {
+      return _extends({}, (0, _Handles.pointHandle)({ cx: c[0], cy: c[1] }), { index: i });
+    });
 
-      var updatePoint = function updatePoint(index) {
-        connectorData.points[index][0] += _d3Selection.event.dx;
-        connectorData.points[index][1] += _d3Selection.event.dy;
-        type.redrawConnector();
-      };
+    var updatePoint = function updatePoint(index) {
+      connectorData.points[index][0] += _d3Selection.event.dx;
+      connectorData.points[index][1] += _d3Selection.event.dy;
+      type.redrawConnector();
+    };
 
-      handles = type.mapHandles(cHandles.map(function (h) {
-        return _extends({}, h.move, { drag: updatePoint.bind(type, h.index) });
-      }));
-    })();
+    handles = type.mapHandles(cHandles.map(function (h) {
+      return _extends({}, h.move, { drag: updatePoint.bind(type, h.index) });
+    }));
   }
 
   var data = (0, _typeLine.lineSetup)({ type: type, subjectType: subjectType });
@@ -4763,19 +4771,17 @@ var Type = exports.Type = function () {
         if (type === "handle") {
           (0, _Handles.addHandles)({ group: component, r: attrs && attrs.r, handles: handles });
         } else {
-          (function () {
-            newWithClass(component, [_this.annotation], type, className);
+          newWithClass(component, [_this.annotation], type, className);
 
-            var el = component.select(type + '.' + className);
-            var attrKeys = Object.keys(attrs);
-            attrKeys.forEach(function (attr) {
-              if (attr === "text") {
-                el.text(attrs[attr]);
-              } else {
-                el.attr(attr, attrs[attr]);
-              }
-            });
-          })();
+          var el = component.select(type + '.' + className);
+          var attrKeys = Object.keys(attrs);
+          attrKeys.forEach(function (attr) {
+            if (attr === "text") {
+              el.text(attrs[attr]);
+            } else {
+              el.attr(attr, attrs[attr]);
+            }
+          });
         }
       });
     }

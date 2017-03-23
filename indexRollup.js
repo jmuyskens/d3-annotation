@@ -788,21 +788,19 @@ var connectorCurve = (function (_ref) {
   var handles = [];
 
   if (type.editMode) {
-    (function () {
-      var cHandles = connectorData.points.map(function (c, i) {
-        return _extends({}, pointHandle({ cx: c[0], cy: c[1] }), { index: i });
-      });
+    var cHandles = connectorData.points.map(function (c, i) {
+      return _extends({}, pointHandle({ cx: c[0], cy: c[1] }), { index: i });
+    });
 
-      var updatePoint = function updatePoint(index) {
-        connectorData.points[index][0] += d3Selection.event.dx;
-        connectorData.points[index][1] += d3Selection.event.dy;
-        type.redrawConnector();
-      };
+    var updatePoint = function updatePoint(index) {
+      connectorData.points[index][0] += d3Selection.event.dx;
+      connectorData.points[index][1] += d3Selection.event.dy;
+      type.redrawConnector();
+    };
 
-      handles = type.mapHandles(cHandles.map(function (h) {
-        return _extends({}, h.move, { drag: updatePoint.bind(type, h.index) });
-      }));
-    })();
+    handles = type.mapHandles(cHandles.map(function (h) {
+      return _extends({}, h.move, { drag: updatePoint.bind(type, h.index) });
+    }));
   }
 
   var data = lineSetup({ type: type, subjectType: subjectType });
@@ -1115,19 +1113,17 @@ var Type = function () {
         if (type === "handle") {
           addHandles({ group: component, r: attrs && attrs.r, handles: handles });
         } else {
-          (function () {
-            newWithClass(component, [_this.annotation], type, className);
+          newWithClass(component, [_this.annotation], type, className);
 
-            var el = component.select(type + '.' + className);
-            var attrKeys = Object.keys(attrs);
-            attrKeys.forEach(function (attr) {
-              if (attr === "text") {
-                el.text(attrs[attr]);
-              } else {
-                el.attr(attr, attrs[attr]);
-              }
-            });
-          })();
+          var el = component.select(type + '.' + className);
+          var attrKeys = Object.keys(attrs);
+          attrKeys.forEach(function (attr) {
+            if (attr === "text") {
+              el.text(attrs[attr]);
+            } else {
+              el.attr(attr, attrs[attr]);
+            }
+          });
         }
       });
     }
@@ -1655,7 +1651,7 @@ function annotation() {
 
   var annotation = function annotation(selection) {
     sel = selection;
-    //TODO: check to see if this is still needed    
+    //TODO: check to see if this is still needed
     if (!editMode) {
       selection.selectAll("circle.handle").remove();
     }
@@ -1705,7 +1701,15 @@ function annotation() {
     console.log('Annotations JSON was copied to your clipboard. Please note the annotation type is not JSON compatible. It appears in the objects array in the console, but not in the copied JSON.', collection.json);
     window.copy(JSON.stringify(collection.json.map(function (a) {
       delete a.type;return a;
-    })));
+    }), null, '\t'));
+    return annotation;
+  };
+
+  annotation.jsonDataOnly = function () {
+    console.log('Annotations JSON was copied to your clipboard. Please note the annotation type is not JSON compatible. It appears in the objects array in the console, but not in the copied JSON.', collection.json);
+    window.copy(JSON.stringify(collection.json.map(function (a) {
+      delete a.type;delete a.x;delete a.y;return a;
+    }), null, '\t'));
     return annotation;
   };
 
